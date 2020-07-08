@@ -12,10 +12,9 @@ function love.load()
     fonth2 = love.graphics.newFont(pixelFontPath, 72)
     fonth3 = love.graphics.newFont(pixelFontPath, 54)
     
-    --love.graphics.setFont(fonth1)
     gameNameTextWidth = fonth1:getWidth(gameNameText)
 
-    game = Game()
+    game = Game(5)
 
 end
 

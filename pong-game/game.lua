@@ -17,6 +17,8 @@ local delta = love.timer.getDelta()
 local scoreBoardText
 local sTextWidth
 
+local isBallEnabled = true
+
 boundaries = {}
 boundaries.minX=0
 boundaries.maxX=screenWidth
@@ -26,9 +28,11 @@ boundaries.maxY=screenHeight
 Game.state = 0
 local c = 0
 
-function Game:new()
+function Game:new(scoreLimit)
    require "pad"
    require "ball"
+
+   self.scoreLimit = scoreLimit
 
    pad0 = Pad(100, screenHeight/2,10,65)
    pad1 = Pad( screenWidth - 100, screenHeight/2,10,65)
@@ -50,6 +54,9 @@ function Game:reset()
     ball.x = boundaries.maxX / 2 
     ball.y = boundaries.maxY / 2
     ball:reset()
+
+    player0.score = 0
+    player1.score = 0
 end
 
 function Game:toggleGameState()
@@ -85,6 +92,14 @@ function Game:update(dt)
     timer = timer + timer * dt      
 end
 
+function Game:drawScoreLines(pad0, pad1)
+    love.graphics.setColor(1,1,1,0.4)
+    love.graphics.line(pad0.x + pad0.w / 2, boundaries.maxY, pad0.x + pad0.w / 2, boundaries.minY)
+    love.graphics.line(pad1.x + pad1.w / 2, boundaries.maxY, pad1.x + pad1.w / 2, boundaries.minY)
+    love.graphics.setColor(1,1,1,1)
+
+end
+
 function drawMidLine(num) 
     for i=1,50 do
         local c = ((i + num) % #Game.colors) + 1
@@ -95,13 +110,30 @@ function drawMidLine(num)
     end
 end
 
+function Game:score() 
+        if ball.x < pad0.x + pad0.w / 2 and isBallEnabled == true then
+            player0.score = player0.score + 1 
+            isBallEnabled = false
+        elseif ball.x > pad1.x + pad1.w / 2 and isBallEnabled == true then
+            player1.score = player1.score + 1 
+            isBallEnabled = false
+        else isBallEnabled = true
+        end
+        scoreBoardText = tostring(player0.score .. "   " .. player1.score ..  "   ")
+end
+
+function Game:translate()
+    love.graphics.rectangle("fill", 0, boundaries.maxX, 0, boundaries.maxY)
+    love.graphics.rectangle("fill", 0, boundaries.maxX, 0, boundaries.maxY)
+end
+
 function Game:drawScoreBoard()
     love.graphics.printf(scoreBoardText,  screenWidth/2 - (sTextWidth / 2), 10, 300, ("left"))
 end
 
 function Game:draw()
-    --pad0:draw()
-    --pad1:draw()
+    self:drawScoreLines(pad0,pad1)
+
     player0:draw()
     player1:draw()
     
@@ -115,5 +147,6 @@ function Game:draw()
     --love.graphics.setColor(1, 1, 1)
     
     ball:draw()
-
+    self:score()
+    self:translate()
 end
