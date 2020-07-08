@@ -12,24 +12,21 @@ function Pad:new(x, y, w, h)
     self.speedY = 0
 end
 
-function Pad:getDamage(damageInt)
-    self.x = self.x - damageInt
-end
-
-function Pad:changeSpeed(speedFactor)
-    
-end
-
 function Pad:update(dt)
-    if love.keyboard.isDown("down") then 
+    if love.keyboard.isDown(self.downKey) and self.x > 0  then 
         self.speedY = 350 
-    elseif love.keyboard.isDown("up") then 
+    elseif love.keyboard.isDown(self.upKey) and self.x < boundaries.maxX then 
         self.speedY = -350
     else self.speedY = 0
     end
  
     self.x = self.x + self.speedX * dt
     self.y = self.y + self.speedY * dt
+end
+
+function Pad:assignKeys(upKey, downKey)
+    self.upKey = upKey
+    self.downKey = downKey
 end
 
 function Pad:draw()

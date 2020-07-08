@@ -1,27 +1,39 @@
-local gameNameText = "Pong game"
+local gameNameText = "Press space"
 local pauseScreenText = "R : restart\nT : time\nQ : Quit"
-local fWidth  
+local pixelFontPath = "fonts/Pixels.ttf"
+local gameNameTextWidth 
 
 function love.load()
     Object = require "classic"
     require "conf" 
     require "game"
-        -- love.graphics.getWidth()
-        -- love.graphics.getHeight()
-    font = love.graphics.newFont("fonts/Pixels.ttf",108)
-    love.graphics.setFont(font)
-    fWidth = font:getWidth(gameNameText)
-        -- pad1 = Pad.new(0,0,10,10)
+
+    fonth1 = love.graphics.newFont(pixelFontPath, 108)
+    fonth2 = love.graphics.newFont(pixelFontPath, 72)
+    fonth3 = love.graphics.newFont(pixelFontPath, 54)
+    
+    --love.graphics.setFont(fonth1)
+    gameNameTextWidth = fonth1:getWidth(gameNameText)
+
     game = Game()
 
 end
 
 function love.keypressed(key)
-    if(key == "space" or key == "escape") then
+    if key == "space" or key == "escape" then
         game:toggleGameState()
-    elseif(key == "t") then
-        timeScale = (timeScale + 1) % 3
+
+    if Game.state ~= 1 then
+        return nil
+    end
+    elseif key == "t" then
+        timeScale = (timeScale + 1) % timeScaleUpperLimit
+        if timeScale == 0 then timeScale = 1 end
         changeTimeScale(timeScale)
+    elseif key == "q" and Game.state == 0 then
+        love.event.quit()
+    elseif key == "r" and Game.state == 0 then
+        game:reset()
     end
 end
 
@@ -32,20 +44,22 @@ function love.update(dt)
 end
 
 function drawPauseScreen()
-    love.graphics.printf(pauseScreenText, (screenWidth / 2) - (font:getWidth(pauseScreenText) / 2),  100, 600, ("left"))
+    love.graphics.printf(pauseScreenText, (screenWidth / 2) - (fonth1:getWidth(pauseScreenText) / 2),  100, 600, ("left"))
     love.graphics.setColor(1,1,1, 0.2)
 end
 
 function love.draw()
+    love.graphics.setFont(fonth1)
+
+    love.graphics.printf(gameNameText, (screenWidth / 2) - (gameNameTextWidth / 2),  screenHeight - 100, 1000, ("left"))
+    love.graphics.setFont(fonth2)
+    love.graphics.printf("time:"..timeScale, 20, 0  , 500, ("left"))
+    love.graphics.setFont(fonth1)
+    game:draw()
+
     if(Game.state == 0) then
         drawPauseScreen()
     end
-    --love.graphics.setColor(1,1,1,0.5)
-    love.graphics.printf(gameNameText, (screenWidth / 2) - (fWidth / 2),  screenHeight - 100, 500, ("left"))
-    love.graphics.printf("time:"..timeScale, 0, -20  , 500, ("left"))
-
-    game:draw()
-
 end
 
 function getFont() return font end

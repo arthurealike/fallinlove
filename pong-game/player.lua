@@ -2,9 +2,10 @@ Player = Object:extend()
 
 function Player:new(pad,upKey,downKey)
     self.pad = pad
-
     self.upKey = upKey
     self.downKey = downKey
+    self.pad:assignKeys(upKey, downKey)
+    self.score = 0
 end
 
 function Player:update(dt)

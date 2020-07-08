@@ -1,6 +1,7 @@
 Ball = Object:extend()
 
 local colorNum = 0
+
 function Ball:new(x, y, radius)
     self.x = x
     self.y = y
@@ -30,6 +31,11 @@ function Ball:update(dt)
     if self.y <= 0 + self.radius-1 then
         self:bounce(0, 1)
     end
+end
+
+function Ball:reset()
+    self.speedX = self.speedX * math.random(-1, 1)
+    self.speedY = self.speedY * math.random(-1, 1)
 end
 
 function Ball:bounce(directionX, directionY)

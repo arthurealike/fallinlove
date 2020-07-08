@@ -38,28 +38,25 @@ function Game:new()
 
    ball = Ball( screenHeight / 2,  screenHeight / 2, 5)
    scoreBoardText = tostring(scoreBoard.player1 .. "   " .. scoreBoard.player2)
-   sTextWidth = font:getWidth(scoreBoardText)
+   sTextWidth = fonth1:getWidth(scoreBoardText)
 end
 
 function Game:reset()
     pad0.x = 100
-    pad0.y = screenHeight / 2
-    pad1.x = screenWidth - 100
-    pad1.y = screenHeight / 2
+    pad0.y = boundaries.maxY / 2
+    pad1.x = boundaries.maxX - 100
+    pad1.y = boundaries.maxY / 2
 
-    ball.x = screenHeight / 2 
-    ball.y = screenHeight / 2
-    ball.speedX = 0
+    ball.x = boundaries.maxX / 2 
+    ball.y = boundaries.maxY / 2
+    ball:reset()
 end
 
 function Game:toggleGameState()
     if(Game.state == 1) then
         Game.state = 0
-        print("state is 0")
     else
         Game.state = 1
-        print("state is 1")
-    --    self:reset()
     end
 end
 
@@ -76,11 +73,6 @@ function Game:update(dt)
         lineNum = (lineNum + 1) % #Game.colors -- put this line without timer and see the magic
     end
     
-    --pad0:update(dt) 
-   -- pad1:update(dt) 
-
-   -- player0:update(dt)
-   -- player1:update(dt)
     ball:update(dt)
 
     player0:update(dt)
