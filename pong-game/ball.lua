@@ -10,10 +10,25 @@ function Ball:new(x, y, radius)
     self.speedY = 65
 end
 
-function Ball:update(dt)
-    self.x = self.x + self.speedX * dt
-    self.y = self.y + self.speedY * dt
+local defaultFilter = function()
+    return 'bounce'
+end
 
+function Ball:update(dt)
+    local goalX, goalY = self.x + self.speedX * dt, self.y + self.speedY * dt
+    local actualX, actualY, cols, len = world:move(ball, goalX, goalY, defaultFilter)
+    
+    self.x, self.y  = actualX, actualY
+
+    if len > 0 then
+        local col = cols[1]
+        local direction = 1
+        if col.touch.x > boundaries.maxX / 2 then
+            direction = -1
+        end
+        print("col.touch.y = ".. tostring(col.touch.y) .. " ,  " .. tostring(self.y))
+        self:bounce(direction, 0)
+    end 
     colorNum = (colorNum + 1) 
   
     if self.x >=  screenWidth - self.radius+1 then

@@ -3,7 +3,8 @@ screenHeight = 540
 timeScale = 1      
 timeScaleUpperLimit = 5
 colorfulMode = true
-debugMode = false 
+endlessMode = true
+debugMode = true 
     
 function love.conf(t)
     print("love.conf(t) is enabled")

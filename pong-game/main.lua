@@ -15,17 +15,15 @@ function love.load()
     gameNameTextWidth = fonth1:getWidth(gameNameText)
 
     game = Game(5)
-
 end
 
 function love.keypressed(key)
     if key == "space" or key == "escape" then
         game:toggleGameState()
-
     if Game.state ~= 1 then
         return nil
     end
-    elseif key == "t" then
+    elseif key == "t" and Game.state == 0 then
         timeScale = (timeScale + 1) % timeScaleUpperLimit
         if timeScale == 0 then timeScale = 1 end
         changeTimeScale(timeScale)
@@ -44,7 +42,7 @@ end
 
 function drawPauseScreen()
     love.graphics.printf(pauseScreenText, (screenWidth / 2) - (fonth1:getWidth(pauseScreenText) / 2),  100, 600, ("left"))
-    love.graphics.setColor(1,1,1, 0.2)
+    love.graphics.setColor(1,1,1, 0.15)
 end
 
 function love.draw()
