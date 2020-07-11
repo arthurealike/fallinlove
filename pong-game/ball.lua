@@ -11,6 +11,7 @@ function Ball:new(x, y, radius)
     self.speedY = 0
     self.defaultSpeedX = 300
     self.defaultSpeedY = 65
+    self.startSpeedX,self.startSpeedY = 100,0
 end
 
 local defaultFilter = function()
@@ -71,12 +72,15 @@ function Ball:update(dt)
 end
 
 function Ball:reset(scorer)
-    directionX, directionY = 1, -1 
+    ball.x = boundaries.maxX / 2 
+    ball.y = boundaries.maxY / 2
+    directionX, directionY = 0, 0
 
     local direction = scorer.pad.p == 0 and -1 or 1
-    self.speedX = self.defaultSpeedX * direction
 
-    self.speedY = 0 * math.random(-1, 1)
+    self.speedX = self.startSpeedX * direction
+    self.speedY = self.startSpeedY * math.random(-1, 1)
+    print(direction)
 end
 
 function Ball:bounce(directionX, directionY)

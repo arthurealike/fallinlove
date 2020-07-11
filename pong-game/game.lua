@@ -68,10 +68,10 @@ function Game:new(scoreLimit)
    table.insert(gameObjects,ball) 
    scoreBoardText = tostring(scoreBoard.player1 .."   ".. scoreBoard.player2)
    sTextWidth = fonth1:getWidth(scoreBoardText)
-   
-    world:add(pad0, pad0.x, pad0.y, pad0.w, pad0.h)
-    world:add(pad1,pad1.x, pad1.y, pad1.w, pad1.h)
-    world:add(ball, ball.x, ball.y, ball.radius, ball.radius)
+
+   world:add(pad0, pad0.x, pad0.y, pad0.w, pad0.h + 10)
+   world:add(pad1,pad1.x, pad1.y, pad1.w, pad1.h + 10)
+   world:add(ball, ball.x, ball.y, ball.radius, ball.radius)
 end
 
 function Game:reset()
@@ -84,6 +84,8 @@ function Game:reset()
 
     ball.x = boundaries.maxX / 2 
     ball.y = boundaries.maxY / 2
+    ball.speedX = 0
+    ball.speedY = 0
     ball:reset(player0)
 
     player0.score = 0
@@ -111,18 +113,18 @@ function Game:update(dt)
         lineNum = (lineNum + 1) % #Game.colors -- put this line without timer and see the magic
     end
 
-    if ball.x < pad0.x + pad0.w / 2 then self:score(player0)
-    elseif ball.x > pad1.x + pad1.w / 2 then self:score(player1)
-    else isBallEnabled = true
-    end
-
     for i, go in ipairs(gameObjects) do
         go:update(dt)
     end
 
-    world:update(pad0, pad0.x, pad0.y, pad0.w, pad0.h)
-    world:update(pad1,pad1.x, pad1.y, pad1.w, pad1.h)
+    world:update(pad0, pad0.x, pad0.y, pad0.w, pad0.h + 10)
+    world:update(pad1,pad1.x, pad1.y, pad1.w, pad1.h + 10)
     world:update(ball, ball.x, ball.y, ball.radius, ball.radius)
+
+    if ball.x < pad0.x + pad0.w / 2 then self:score(player0)
+    elseif ball.x > pad1.x + pad1.w / 2 then self:score(player1)
+    else isBallEnabled = true
+    end
 
     timer = timer + timer * dt      
 end
@@ -145,16 +147,16 @@ function drawMidLine(num)
 end
 
 function Game:score(player) 
-    player.score = player.score + 1
     pad0.x = 100
     pad0.y = boundaries.maxY / 2 - pad0.h / 2
     pad1.x = boundaries.maxX - 100
     pad1.y = boundaries.maxY / 2 - pad1.h / 2
 
-    ball.x = boundaries.maxX / 2 
-    ball.y = boundaries.maxY / 2
+   -- ball.x = boundaries.maxX / 2 
+   -- ball.y = boundaries.maxY / 2
     ball:reset(player)
 
+    player.score = player.score + 1
     scoreBoardText = tostring(player0.score .. "   " .. player1.score ..  "   ")
 end
 

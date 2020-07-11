@@ -1,7 +1,11 @@
+package.path = package.path .. "?;../libs/?.lua"
+
 local gameNameText = "Press space"
 local pauseScreenText = "R : restart\nT : time\nQ : Quit"
 local pixelFontPath = "fonts/Pixels.ttf"
 local gameNameTextWidth 
+
+local scoreLimit = 5
 
 function love.load()
     Object = require "classic"
@@ -13,23 +17,26 @@ function love.load()
     fonth3 = love.graphics.newFont(pixelFontPath, 54)
     
     gameNameTextWidth = fonth1:getWidth(gameNameText)
-    game = Game(5)
+    game = Game(scoreLimit)
 end
 
 function love.keypressed(key)
     if key == "space" or key == "escape" then
         game:toggleGameState()
-    if Game.state ~= 1 then
+    end
+    if Game.state == 1 then
         return nil
     end
-    elseif key == "t" and Game.state == 0 then
-        timeScale = (timeScale + 1) % timeScaleUpperLimit
-        if timeScale == 0 then timeScale = 1 end
-        changeTimeScale(timeScale)
-    elseif key == "q" and Game.state == 0 then
-        love.event.quit()
-    elseif key == "r" and Game.state == 0 then
+
+    if key == "t" then
+       timeScale = (timeScale + 1) % timeScaleUpperLimit
+       if timeScale == 0 then timeScale = 1 end
+            changeTimeScale(timeScale)
+        elseif key == "q" then
+            love.event.quit()
+        elseif key == "r" then
             game:reset()
+        else print("l.keyP(k)")
     end
 end
 
