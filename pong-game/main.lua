@@ -13,7 +13,6 @@ function love.load()
     fonth3 = love.graphics.newFont(pixelFontPath, 54)
     
     gameNameTextWidth = fonth1:getWidth(gameNameText)
-
     game = Game(5)
 end
 
@@ -30,7 +29,7 @@ function love.keypressed(key)
     elseif key == "q" and Game.state == 0 then
         love.event.quit()
     elseif key == "r" and Game.state == 0 then
-        game:reset()
+            game:reset()
     end
 end
 

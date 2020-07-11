@@ -1,13 +1,16 @@
 Ball = Object:extend()
 
 local colorNum = 0
+local directionX, directionY = 1, 1
 
 function Ball:new(x, y, radius)
     self.x = x
     self.y = y
     self.radius = radius
-    self.speedX = 300
-    self.speedY = 65
+    self.speedX = 150
+    self.speedY = 0
+    self.defaultSpeedX = 300
+    self.defaultSpeedY = 65
 end
 
 local defaultFilter = function()
@@ -15,50 +18,75 @@ local defaultFilter = function()
 end
 
 function Ball:update(dt)
+    local currentDirX, currentDirY = directionX, directionY
+
     local goalX, goalY = self.x + self.speedX * dt, self.y + self.speedY * dt
     local actualX, actualY, cols, len = world:move(ball, goalX, goalY, defaultFilter)
     
     self.x, self.y  = actualX, actualY
 
+    -- Pad collision 
     if len > 0 then
         local col = cols[1]
-        local direction = 1
+
+        directionX = 1
         if col.touch.x > boundaries.maxX / 2 then
-            direction = -1
+            directionX = -1
         end
-        print("col.touch.y = ".. tostring(col.touch.y) .. " ,  " .. tostring(self.y))
-        self:bounce(direction, 0)
+        
+        local distanceY = col.other.y + 65 / 2 - col.touch.y
+        local dirY = -1
+
+        if distanceY < 0 then dirY = 1 end
+        distanceY = math.abs(distanceY)
+
+        distanceY =  distanceY * dirY
+        directionY = (distanceY / 5)
+
+       self:bounce(directionX, directionY)
     end 
     colorNum = (colorNum + 1) 
   
-    if self.x >=  screenWidth - self.radius+1 then
-       self:bounce(-1, 0)
+  --[[
+        Wall bounce
+    ]]
+
+    if self.x >= screenWidth - self.radius+1 then
+       self:bounce(-math.abs(directionX), 0)
     end
 
     if  self.x <= 0 + self.radius-1 then
-       self:bounce(1, 0)
+       self:bounce(math.abs(directionX), 0)
     end
 
-    if self.y >=  screenHeight - self.radius+1 then
-        self:bounce(0, -1)
+    if self.y >= screenHeight - self.radius+1 then
+        -- bottom wall
+        self:bounce(0, -math.abs(directionY))
     end
 
     if self.y <= 0 + self.radius-1 then
-        self:bounce(0, 1)
+        self:bounce(0, math.abs(directionY))
     end
+
 end
 
-function Ball:reset()
-    self.speedX = self.speedX * math.random(-1, 1)
-    self.speedY = self.speedY * math.random(-1, 1)
+function Ball:reset(scorer)
+    directionX, directionY = 1, -1 
+
+    local direction = scorer.pad.p == 0 and -1 or 1
+    self.speedX = self.defaultSpeedX * direction
+
+    self.speedY = 0 * math.random(-1, 1)
 end
 
 function Ball:bounce(directionX, directionY)
     if(directionX ~= 0) then
-        self.speedX = directionX * math.abs(self.speedX)
+        self.speedX = directionX * self.defaultSpeedX
     end
-    if(directionY ~=  0) then
-        self.speedY = directionY * math.abs(self.speedY) 
+    if directionY == nil then
+        self.speedY = 0
+    elseif(directionY ~=  0) then
+        self.speedY = directionY * self.defaultSpeedY 
     end
 end
 
@@ -70,10 +98,6 @@ function Ball:gizmos(lineCount, color)
     love.graphics.setColor(1,1,1)
 end
 
-function Ball:reset()
-    self.x =  screenWidth / 2
-    self.y =  screenHeight / 2
-end
 
 function Ball:draw()
 --    love.graphics.setColor(Game.colors[colorNum % 3 + 1]) 

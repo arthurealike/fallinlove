@@ -5,6 +5,7 @@ world = bump.newWorld()
 Game = Object:extend()
 local time = timeScale
 local scoreBoard = { player1 = 0, player2 = 0}
+lastScorer = 0 -- 0 ,, 1
 
 --pads,ball
 local gameObjects = {}
@@ -22,7 +23,8 @@ Game.colors[9] = {0, 0, 1}
 Game.colors[10] = {0, 1, 0}
 Game.colors[11] = {0.976, 0.517, 0.023}
 Game.colors["player0"] = {1,0,0}
-Game.colors["player1"] = {0,0,1}
+Game.colors["player1"] = {0.027, 0.475, 0.894}
+Game.colors["ai"] = {0.447, 0.416, 0.584}
 
 local timer = 0 
 local timeToChangeLineNum = 1
@@ -50,8 +52,8 @@ function Game:new(scoreLimit)
 
    self.scoreLimit = scoreLimit
 
-   pad0 = Pad(0, 100, screenHeight/2,10,65)
-   pad1 = Pad(1, screenWidth - 100, screenHeight/2,10,65)
+   pad0 = Pad(0, 100, boundaries.maxY/2 - 65 / 2,10,65)
+   pad1 = Pad(1, boundaries.maxX - 100, boundaries.maxY/2 - 65 / 2,10,65)
 
    table.insert(gameObjects,pad0)
    table.insert(gameObjects,pad1)
@@ -61,7 +63,7 @@ function Game:new(scoreLimit)
 
    table.insert(gameObjects,player0)
    table.insert(gameObjects,player1)
-   ball = Ball( screenHeight / 2,  screenHeight / 2, 5)
+   ball = Ball( boundaries.maxX / 2,  boundaries.maxY / 2, 5)
 
    table.insert(gameObjects,ball) 
    scoreBoardText = tostring(scoreBoard.player1 .."   ".. scoreBoard.player2)
@@ -76,13 +78,13 @@ function Game:reset()
     timeScale = 1
     time = 1
     pad0.x = 100
-    pad0.y = boundaries.maxY / 2
+    pad0.y = boundaries.maxY / 2 - pad0.h / 2
     pad1.x = boundaries.maxX - 100
-    pad1.y = boundaries.maxY / 2
+    pad1.y = boundaries.maxY / 2 - pad1.h / 2
 
     ball.x = boundaries.maxX / 2 
     ball.y = boundaries.maxY / 2
-    ball:reset()
+    ball:reset(player0)
 
     player0.score = 0
     player1.score = 0
@@ -109,6 +111,11 @@ function Game:update(dt)
         lineNum = (lineNum + 1) % #Game.colors -- put this line without timer and see the magic
     end
 
+    if ball.x < pad0.x + pad0.w / 2 then self:score(player0)
+    elseif ball.x > pad1.x + pad1.w / 2 then self:score(player1)
+    else isBallEnabled = true
+    end
+
     for i, go in ipairs(gameObjects) do
         go:update(dt)
     end
@@ -116,18 +123,6 @@ function Game:update(dt)
     world:update(pad0, pad0.x, pad0.y, pad0.w, pad0.h)
     world:update(pad1,pad1.x, pad1.y, pad1.w, pad1.h)
     world:update(ball, ball.x, ball.y, ball.radius, ball.radius)
-
-    
-    -- collision pad bt ball
-   -- if ball.x > pad0.x - ball.radius and ball.y <= pad0.y + pad0.h and ball.y >= pad0.y - ball.radius then
-   --    -- ball.gX -> midP x 
-   --    -- ball.gY -> midP y
-   --    -- ball.gX + (ball.w / 2) -> topP X
-   --    -- ball.gY + (ball.h / 2) -> topP Y
-   --    -- ball.
-   --     c = c + 1
-   --     print("bounced")
-   -- end
 
     timer = timer + timer * dt      
 end
@@ -137,7 +132,6 @@ function Game:drawScoreLines(pad0, pad1)
     love.graphics.line(pad0.x + pad0.w / 2, boundaries.maxY, pad0.x + pad0.w / 2, boundaries.minY)
     love.graphics.line(pad1.x + pad1.w / 2, boundaries.maxY, pad1.x + pad1.w / 2, boundaries.minY)
     love.graphics.setColor(1,1,1,1)
-
 end
 
 function drawMidLine(num) 
@@ -150,38 +144,18 @@ function drawMidLine(num)
     end
 end
 
-function spawnParticles()
-    for i=1, #Game.colors do            
-        love.graphics.circle("fill", math.random(boundaries.minX, boundaries.maxX), math.random(boundaries.minY, boundaries.maxY), 5)
-    end
-end
+function Game:score(player) 
+    player.score = player.score + 1
+    pad0.x = 100
+    pad0.y = boundaries.maxY / 2 - pad0.h / 2
+    pad1.x = boundaries.maxX - 100
+    pad1.y = boundaries.maxY / 2 - pad1.h / 2
 
-function Game:score() 
-    if ball.x < pad0.x + pad0.w / 2 then
-        if isBallEnabled == true then
-            player1.score = player1.score + 1 
-            if player1.score >= self.scoreLimit and endlessMode ~= true then
-                print("player right won")
-            end
-            isBallEnabled = false
-        end
-    elseif ball.x > pad1.x + pad1.w / 2 then
-        if isBallEnabled == true then
-            player0.score = player0.score + 1 
-            if player1.score >= self.scoreLimit and endlessMode ~= true  then
-                print("player left won")
-            end
-            isBallEnabled = false
-        end
-    else isBallEnabled = true
+    ball.x = boundaries.maxX / 2 
+    ball.y = boundaries.maxY / 2
+    ball:reset(player)
 
     scoreBoardText = tostring(player0.score .. "   " .. player1.score ..  "   ")
-    end
-end
-
-function Game:translate()
-    love.graphics.rectangle("fill", 0, boundaries.maxX, 0, boundaries.maxY)
-    love.graphics.rectangle("fill", 0, boundaries.maxX, 0, boundaries.maxY)
 end
 
 function Game:drawScoreBoard()
@@ -196,10 +170,7 @@ function Game:draw()
         go:draw()
     end
  
-    self:score()
-
     local t = love.timer.getTime()
-    t = 0 and 1
 
     drawMidLine(lineNum)
     

@@ -24,9 +24,9 @@ function Pad:update(dt)
     self.gX = self.x + self.w / 2
     self.gY = self.y + self.h / 2
     if love.keyboard.isDown(self.downKey) and self.y + self.h < boundaries.maxY  then 
-        self.speedY = 200 
+        self.speedY = 100 
     elseif love.keyboard.isDown(self.upKey) and self.y  > boundaries.minY then 
-        self.speedY = -200
+        self.speedY = -100
     else self.speedY = 0
     end
  
@@ -41,7 +41,7 @@ end
 
 function Pad:drawTriangle()
     love.graphics.setColor(self.color)
-    love.graphics.polygon("line", self.gX + 10 * self.direction, self.gY, self.gX + 20 * self.direction, self.gY + 10, self.gX + 20 * self.direction, self.gY -10)
+    love.graphics.polygon("fill", self.gX + 10 * self.direction, self.gY, self.gX + 20 * self.direction, self.gY + 10, self.gX + 20 * self.direction, self.gY -10)
     love.graphics.setColor(1,1,1)
 end
 
@@ -51,11 +51,6 @@ function Pad:draw()
     if(debugMode) then
         self:gizmos(8, self.color)
     end
-end
-
-function Pad:rainbowMode(enabled)
-    setColor()
-    love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
 end
     
 --It is for debug mode

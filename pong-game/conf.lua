@@ -4,10 +4,9 @@ timeScale = 1
 timeScaleUpperLimit = 5
 colorfulMode = true
 endlessMode = true
-debugMode = true 
+debugMode = false 
     
 function love.conf(t)
-    print("love.conf(t) is enabled")
     t.window.title = "Pong Game"          -- The window title (string)
     t.window.icon = nil                   -- Filepath to an image to use as the window's icon (string)
     t.window.width =  screenWidth         -- The window width (number)
