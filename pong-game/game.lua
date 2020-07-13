@@ -30,8 +30,6 @@ local timer = 0
 local timeToChangeLineNum = 1
 local lineNum = 0
 
-local delta = love.timer.getDelta()
-
 local scoreBoardText
 local sTextWidth
 
@@ -47,31 +45,31 @@ Game.state = 0
 local c = 0
 
 function Game:new(scoreLimit)
-   require "pad"
-   require "ball"
+    require "pad"
+    require "ball"
 
-   self.scoreLimit = scoreLimit
+    self.scoreLimit = scoreLimit
 
-   pad0 = Pad(0, 100, boundaries.maxY/2 - 65 / 2,10,65)
-   pad1 = Pad(1, boundaries.maxX - 100, boundaries.maxY/2 - 65 / 2,10,65)
+    pad0 = Pad(0, 100, boundaries.maxY/2 - 65 / 2,10,65)
+    pad1 = Pad(1, boundaries.maxX - 100, boundaries.maxY/2 - 65 / 2,10,65)
 
-   table.insert(gameObjects,pad0)
-   table.insert(gameObjects,pad1)
-   
-   player0 = Player(pad0,"w","s")
-   player1 = Player(pad1, "up","down")
+    table.insert(gameObjects,pad0)
+    table.insert(gameObjects,pad1)
 
-   table.insert(gameObjects,player0)
-   table.insert(gameObjects,player1)
-   ball = Ball( boundaries.maxX / 2,  boundaries.maxY / 2, 5)
+    player0 = Player(pad0,"w","s")
+    player1 = Player(pad1, "up","down")
 
-   table.insert(gameObjects,ball) 
-   scoreBoardText = tostring(scoreBoard.player1 .."   ".. scoreBoard.player2)
-   sTextWidth = fonth1:getWidth(scoreBoardText)
+    table.insert(gameObjects,player0)
+    table.insert(gameObjects,player1)
+    ball = Ball( boundaries.maxX / 2,  boundaries.maxY / 2, 5)
 
-   world:add(pad0, pad0.x, pad0.y, pad0.w, pad0.h + 10)
-   world:add(pad1,pad1.x, pad1.y, pad1.w, pad1.h + 10)
-   world:add(ball, ball.x, ball.y, ball.radius, ball.radius)
+    table.insert(gameObjects,ball) 
+    scoreBoardText = tostring(scoreBoard.player1 .."   ".. scoreBoard.player2)
+    sTextWidth = fonth1:getWidth(scoreBoardText)
+
+    world:add(pad0, pad0.x, pad0.y, pad0.w, pad0.h + 10)
+    world:add(pad1,pad1.x, pad1.y, pad1.w, pad1.h + 10)
+    world:add(ball, ball.x, ball.y, ball.radius, ball.radius)
 end
 
 function Game:reset()
@@ -82,11 +80,12 @@ function Game:reset()
     pad1.x = boundaries.maxX - 100
     pad1.y = boundaries.maxY / 2 - pad1.h / 2
 
-    ball.x = boundaries.maxX / 2 
-    ball.y = boundaries.maxY / 2
     ball.speedX = 0
     ball.speedY = 0
     ball:reset(player0)
+
+    ball.x = boundaries.maxX / 2 
+    ball.y = boundaries.maxY / 2
 
     player0.score = 0
     player1.score = 0
@@ -152,8 +151,6 @@ function Game:score(player)
     pad1.x = boundaries.maxX - 100
     pad1.y = boundaries.maxY / 2 - pad1.h / 2
 
-   -- ball.x = boundaries.maxX / 2 
-   -- ball.y = boundaries.maxY / 2
     ball:reset(player)
 
     player.score = player.score + 1
@@ -171,11 +168,11 @@ function Game:draw()
     for i, go in ipairs(gameObjects) do
         go:draw()
     end
- 
+
     local t = love.timer.getTime()
 
     drawMidLine(lineNum)
-    
+
     love.graphics.setColor(1,1,1)
 end
 

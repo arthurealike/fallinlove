@@ -4,7 +4,7 @@ timeScale = 1
 timeScaleUpperLimit = 5
 colorfulMode = true
 endlessMode = true
-debugMode = true 
+debugMode = false 
     
 function love.conf(t)
     t.window.title = "Pong Game"          -- The window title (string)

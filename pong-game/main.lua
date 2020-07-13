@@ -15,7 +15,7 @@ function love.load()
     fonth1 = love.graphics.newFont(pixelFontPath, 108)
     fonth2 = love.graphics.newFont(pixelFontPath, 72)
     fonth3 = love.graphics.newFont(pixelFontPath, 54)
-    
+
     gameNameTextWidth = fonth1:getWidth(gameNameText)
     game = Game(scoreLimit)
 end
@@ -29,14 +29,14 @@ function love.keypressed(key)
     end
 
     if key == "t" then
-       timeScale = (timeScale + 1) % timeScaleUpperLimit
-       if timeScale == 0 then timeScale = 1 end
-            changeTimeScale(timeScale)
-        elseif key == "q" then
-            love.event.quit()
-        elseif key == "r" then
-            game:reset()
-        else print("l.keyP(k)")
+        timeScale = (timeScale + 1) % timeScaleUpperLimit
+        if timeScale == 0 then timeScale = 1 end
+        changeTimeScale(timeScale)
+    elseif key == "q" then
+        love.event.quit()
+    elseif key == "r" then
+        game:reset()
+    else print("l.keyP(k)")
     end
 end
 
