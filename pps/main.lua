@@ -12,6 +12,11 @@ local particleList = {}
 
 local alpha, beta, velocity = 180, 17, 0.67
 
+local tick = 0
+
+alpha = math.rad(alpha)
+beta = math.rad(beta)
+
 function love.load()
     -- Define a Component class.
     local Position = Component.create("position", {"x", "y"}, {x = 0, y = 0})
@@ -42,6 +47,16 @@ function love.load()
         return a + b * (L + R) * sign(R - L)
     end
 
+    local scope = function(angle) 
+        while angle > 2*math.pi do 
+            angle = angle - (2*math.pi)
+        end
+        while angle < 0 do 
+            angle = angle + (2*math.pi)
+        end
+            return angle
+    end
+
     -- Define this System's requirements.
     function MoveSystem:requires()
         return {"position", "velocity"}
@@ -69,6 +84,7 @@ function love.load()
             print("angle = ".. angle)
             print("x = ".. position.x)
             print("y = ".. position.y)
+            tick = tick + 1 
         end
     end
     -- Create a draw System.
@@ -82,10 +98,16 @@ function love.load()
     function DrawSystem:draw()
         love.graphics.setColor(0, 1, 0)
         for _, entity in pairs(self.targets) do
-            local posX, posY, velX, velY = entity:get("position").x, entity:get("position").y, entity:get("velocity").vx, entity:get("velocity").vy 
+            local p = entity:get("position")
+            local v = entity:get("velocity")
+            local o = entity:get("orientation")
+            local posX, posY, velX, velY = p.x, p.y, v.vx, v.vy
             local radius = entity:get("radius").r
+
             love.graphics.circle("fill", posX, posY, radius)
             love.graphics.circle("line", posX, posY, radius * 10)
+            love.graphics.print("L = ".. o.L, posX, posY + 10)
+            love.graphics.print("R = ".. o.R, posX, posY + 10)
             love.graphics.setColor(1, 0, 0)
             love.graphics.line(posX, posY, posX + velX * radius * 10, posY + velY * radius * 10)
             love.graphics.setPointSize(5)
@@ -111,5 +133,6 @@ end
 function love.draw()
     love.graphics.print("FPS : " ..fps, screenWidth - 150, 10)
     love.graphics.print("Particle count : " ..numOfParticles, screenWidth - 150, 40)
+    love.graphics.print("tick count : " ..tick, screenWidth - 150, 60)
     engine:draw()
 end
