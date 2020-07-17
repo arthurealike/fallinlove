@@ -1,138 +1,168 @@
-package.path = package.path .. "?;../libs/?.lua;../libs/lovetoys-0.3.2/?.lua"
+-- use locals!
+local Concord = require("concord")
+
+local numberOfEntities = 0
+local timeScale = 1
+
+local alpha, beta, v, r, scope = 180, 17, .67, 5, 5
+
+local step = 0
+
+local colors = {}
+colors["green"] = {0, 1, 0.367}
+colors["yellow"] = {1, 1, 0}
+colors["blue"] = {0, 0, 1}
+colors["magenta"] = {1, 0, 1}
+colors["brown"] = {0.514, 0.039, 0.047}
 
 local screenWidth = love.graphics.getWidth()
-local screenHeight = love.graphics.getHeight()
+local screenHeight  = love.graphics.getHeight()
 
-local lovetoys = require('lovetoys')
+local entityTable = {}
 
-lovetoys.initialize({globals = true, debug = true})
+local Position = Concord.component(function(c, x, y)
+    c.x = x or 0
+    c.y = y or 0
+end)
 
-local fps, numOfParticles = 60, 1
-local particleList = {}
+local Orientation = Concord.component(function(c, a, L, R, N)
+    c.a = a or 0
+    c.L = L or 0
+    c.R = R or 0
+    c.N = N or 0
+end)
 
-local alpha, beta, velocity = 180, 17, 0.67
+local Size = Concord.component(function(c, radius)
+    c.radius = radius or 0
+end)
 
-local tick = 0
+local Velocity = Concord.component(function(c, x, y)
+    c.x = x or 0
+    c.y = y or 0
+end)
 
-alpha = math.rad(alpha)
-beta = math.rad(beta)
+local Drawable = Concord.component()
 
-function love.load()
-    -- Define a Component class.
-    local Position = Component.create("position", {"x", "y"}, {x = 0, y = 0})
-    local Velocity = Component.create("velocity", {"vx", "vy"})
-    local Orientation = Component.create("orientation", {"a", "b", "L", "R",}, {a = 180, b = 17, L = 0, R = 0})
+-- Defining Systems
+local MoveSystem = Concord.system({Position})
 
-    local Size = Component.create("radius", {"r"}, {r = 0})
-
-    for i=1, numOfParticles do
-        local particle = Entity()
-        particle:initialize()
-        particle:add(Position(screenWidth / 2, screenHeight / 2))
-        particle:add(Velocity(0.67, 0.67))
-        particle:add(Size(20)) 
-        particle:add(Orientation(alpha, beta, 0, 0))
-        table.insert(particleList, particle)
-    end
-
-    -- Create a System class as lovetoys.System subclass.
-    local MoveSystem = class("MoveSystem", System)
-
-    function sign(x)
-        print("sign : ".. tostring((x<0 and -1) or 1))
-        return (x<0 and -1) or 1
-    end
-
-    local delthaPhi = function(a, b, R, L) 
-        return a + b * (L + R) * sign(R - L)
-    end
-
-    local scope = function(angle) 
-        while angle > 2*math.pi do 
-            angle = angle - (2*math.pi)
-        end
-        while angle < 0 do 
-            angle = angle + (2*math.pi)
-        end
-            return angle
-    end
-
-    -- Define this System's requirements.
-    function MoveSystem:requires()
-        return {"position", "velocity"}
-    end
-
-    function MoveSystem:update(dt)
-        for _, entity in pairs(self.targets) do
-            local position = entity:get("position")
-            local velocity = entity:get("velocity")
-            local angle, b, L, R = entity:get("orientation").a, entity:get("orientation").b, entity:get("orientation").L, entity:get("orientation").R
-            
-            angle = angle + delthaPhi(angle,17,5,0) 
-
-            newAngle = angle;
-                
-            while newAngle <= -180 do newAngle = newAngle + 360 end
-            while newAngle > 180 do newAngle = newAngle - 360 end
-
-            angle = newAngle
-
-            position.x = position.x + math.cos(math.rad(angle)) * velocity.vx * dt
-            position.y = position.y + math.sin(math.rad(angle)) * velocity.vy * dt
-
-            print("dP = ".. delthaPhi(angle,17, 0, 0))
-            print("angle = ".. angle)
-            print("x = ".. position.x)
-            print("y = ".. position.y)
-            tick = tick + 1 
-        end
-    end
-    -- Create a draw System.
-    local DrawSystem = class("DrawSystem", System)
-
-    -- Define this System requirements.
-    function DrawSystem:requires()
-        return {"position" , "radius"}
-    end
-
-    function DrawSystem:draw()
-        love.graphics.setColor(0, 1, 0)
-        for _, entity in pairs(self.targets) do
-            local p = entity:get("position")
-            local v = entity:get("velocity")
-            local o = entity:get("orientation")
-            local posX, posY, velX, velY = p.x, p.y, v.vx, v.vy
-            local radius = entity:get("radius").r
-
-            love.graphics.circle("fill", posX, posY, radius)
-            love.graphics.circle("line", posX, posY, radius * 10)
-            love.graphics.print("L = ".. o.L, posX, posY + 10)
-            love.graphics.print("R = ".. o.R, posX, posY + 10)
-            love.graphics.setColor(1, 0, 0)
-            love.graphics.line(posX, posY, posX + velX * radius * 10, posY + velY * radius * 10)
-            love.graphics.setPointSize(5)
-            love.graphics.points(posX, posY)
-        end
-    end
-
-    engine = Engine()
-
-    for _, p in pairs(particleList) do
-        engine:addEntity(p)
-    end
-    engine:addSystem(MoveSystem())
-    engine:addSystem(DrawSystem(), "draw")
+local sign = function(x)
+    return (x<0 and -1) or 1
 end
 
+local delthaPhi = function(a, b, R, L)
+    return a + (b * (L + R) * sign(R - L))
+end
+
+local round = function(n)
+    return math.abs((n % 360))
+end
+
+function love.load()
+    SpawnEntities(100)
+end
+
+function Velocity:bounce(x, y)
+    self.vel.x = x * self.vel.x
+    self.vel.y = y * self.vel.y
+end
+
+function love.keypressed(key)
+    if key == 'space' then
+        SpawnEntities(20)
+    end	
+end
+
+function MoveSystem:update(dt)
+    for _, e in ipairs(self.pool) do
+        local L, R, N  = 0, 0, 0
+        for _, o in ipairs(self.pool) do
+            if e ~= o then
+                local spX = o[Position].x - e[Position].x 
+                local spY = o[Position].y - e[Position].y 
+                local spD = math.sqrt((spX*spX)+(spY*spY))
+                if spD < r * scope * 2 then
+                    N = N + 1
+                    local spA = math.atan2(spY, spX)
+                    if round(spA - e[Orientation].a) < math.pi then
+                        R = R + 1
+                    else 
+                        L = L + 1
+                    end
+                end
+            end
+        end
+        e[Orientation].L = L
+        e[Orientation].R = R
+        e[Orientation].N = N
+
+        local position = e[Position]
+        local orientation = e[Orientation]
+        local angle, l, r = orientation.a, orientation.L, orientation.R
+
+        angle = angle + delthaPhi(alpha, beta, l, r)
+        angle = round(angle)
+        orientation.a = angle
+        position.x = position.x + v * math.cos(math.rad(angle))
+        position.y = position.y + v * math.sin(math.rad(angle))
+    end
+end
+
+local DrawSystem = Concord.system({Position, Drawable})
+
+function DrawSystem:draw()
+    for _, e in ipairs(self.pool) do
+        local position = e[Position]
+        local n = e[Orientation].N
+        local c = colors["green"] 
+
+        if n > 35 then 
+            c = colors["yellow"]
+        elseif n > 16 then
+            c = colors["blue"]
+        elseif n > 15 then
+            c = colors["magenta"]
+        elseif n > 12 then
+            c = colors["brown"]
+        end
+
+        love.graphics.setColor(c)
+        love.graphics.circle("fill", position.x, position.y, r, 100)
+        --love.graphics.circle("line", position.x, position.y, scope * r)
+        --love.graphics.print("N = ".. n, position.x, position.y)
+    end
+end
+
+-- Create the World
+local world = Concord.world()
+
+-- Add the Systems
+world:addSystems(MoveSystem, DrawSystem)
+
+-- Create Particles
+function SpawnEntities(entityCount)
+    cWorld = Concord.entity
+    for i=1,entityCount do 
+        entityTable[i] = 
+        cWorld(world):give(Position, love.math.random(0, screenWidth), love.math.random(0, screenHeight)) 
+        :give(Size, circleRadius)
+        :give(Orientation, love.math.random(0, 360), 0, 0, 0)
+        :give(Drawable)
+    end
+    numberOfEntities = numberOfEntities +  entityCount
+end
+
+-- Emit the events
 function love.update(dt)
-    engine:update(dt)
-    fps = love.timer.getFPS()
-    print(fps)
+    world:emit("update", dt)
+    love.mouse.setVisible(false)
+    step = step + 1
 end
 
 function love.draw()
-    love.graphics.print("FPS : " ..fps, screenWidth - 150, 10)
-    love.graphics.print("Particle count : " ..numOfParticles, screenWidth - 150, 40)
-    love.graphics.print("tick count : " ..tick, screenWidth - 150, 60)
-    engine:draw()
+    love.graphics.setColor(1, 1, 1)
+    world:emit("draw")
+    love.graphics.setColor(1, 0, 0)
+
+    love.graphics.print("Number of objects: ".. numberOfEntities .. "\n" .. "Current FPS: "..tostring(love.timer.getFPS()) .. "\nStep: " .. step) 
 end

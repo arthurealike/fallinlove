@@ -120,8 +120,8 @@ function Game:update(dt)
     world:update(pad1,pad1.x, pad1.y, pad1.w, pad1.h + 10)
     world:update(ball, ball.x, ball.y, ball.radius, ball.radius)
 
-    if ball.x < pad0.x + pad0.w / 2 then self:score(player0)
-    elseif ball.x > pad1.x + pad1.w / 2 then self:score(player1)
+    if ball.x < pad0.x + pad0.w / 2 then self:score(player1)
+    elseif ball.x > pad1.x + pad1.w / 2 then self:score(player0)
     else isBallEnabled = true
     end
 

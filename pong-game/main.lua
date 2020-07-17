@@ -1,4 +1,4 @@
-package.path = package.path .. "?;../libs/?.lua"
+package.path = package.path .. "?;../lib/?;../lib/?.lua"
 
 local gameNameText = "Press space"
 local pauseScreenText = "R : restart\nT : time\nQ : Quit"
