@@ -4,16 +4,18 @@ local Concord = require("concord")
 local numberOfEntities = 0
 local timeScale = 1
 
-local alpha, beta, v, r, scope = 180, 17, .67, 5, 5
+local alpha, beta, v, r, scope = 180, 17, 1.5, 6, 5
 
 local step = 0
 
 local colors = {}
-colors["green"] = {0, 1, 0.367}
+colors["green"] = {0, 1, 0}
 colors["yellow"] = {1, 1, 0}
 colors["blue"] = {0, 0, 1}
 colors["magenta"] = {1, 0, 1}
 colors["brown"] = {0.514, 0.039, 0.047}
+
+success = love.window.setFullscreen(false)
 
 local screenWidth = love.graphics.getWidth()
 local screenHeight  = love.graphics.getHeight()
@@ -51,7 +53,7 @@ local sign = function(x)
 end
 
 local delthaPhi = function(a, b, R, L)
-    return a + (b * (L + R) * sign(R - L))
+    return 180 + (17 * (L + R) * sign(R - L))
 end
 
 local round = function(n)
@@ -59,7 +61,7 @@ local round = function(n)
 end
 
 function love.load()
-    SpawnEntities(100)
+    SpawnEntities(1000)
 end
 
 function Velocity:bounce(x, y)
@@ -81,7 +83,7 @@ function MoveSystem:update(dt)
                 local spX = o[Position].x - e[Position].x 
                 local spY = o[Position].y - e[Position].y 
                 local spD = math.sqrt((spX*spX)+(spY*spY))
-                if spD < r * scope * 2 then
+                if spD <= r * scope then
                     N = N + 1
                     local spA = math.atan2(spY, spX)
                     if round(spA - e[Orientation].a) < math.pi then
@@ -92,12 +94,12 @@ function MoveSystem:update(dt)
                 end
             end
         end
-        e[Orientation].L = L
-        e[Orientation].R = R
-        e[Orientation].N = N
+        local orientation = e[Orientation]
+        orientation.L = L
+        orientation.R = R
+        orientation.N = N
 
         local position = e[Position]
-        local orientation = e[Orientation]
         local angle, l, r = orientation.a, orientation.L, orientation.R
 
         angle = angle + delthaPhi(alpha, beta, l, r)
@@ -114,22 +116,24 @@ function DrawSystem:draw()
     for _, e in ipairs(self.pool) do
         local position = e[Position]
         local n = e[Orientation].N
+        local right = e[Orientation].R
+        local left = e[Orientation].L
         local c = colors["green"] 
 
         if n > 35 then 
             c = colors["yellow"]
         elseif n > 16 then
             c = colors["blue"]
-        elseif n > 15 then
-            c = colors["magenta"]
+     --   elseif n > 15 then
+     --       c = colors["magenta"]
         elseif n > 12 then
             c = colors["brown"]
         end
 
         love.graphics.setColor(c)
-        love.graphics.circle("fill", position.x, position.y, r, 100)
-        --love.graphics.circle("line", position.x, position.y, scope * r)
-        --love.graphics.print("N = ".. n, position.x, position.y)
+        love.graphics.circle("fill", position.x, position.y, r)
+       -- love.graphics.circle("line", position.x, position.y, r * scope)
+       -- love.graphics.print("L : ".. left .. "\nR : "..right.."\nN : "..n , position.x, position.y)
     end
 end
 
@@ -149,7 +153,7 @@ function SpawnEntities(entityCount)
         :give(Orientation, love.math.random(0, 360), 0, 0, 0)
         :give(Drawable)
     end
-    numberOfEntities = numberOfEntities +  entityCount
+    numberOfEntities = numberOfEntities + entityCount
 end
 
 -- Emit the events
